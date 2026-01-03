@@ -35,16 +35,26 @@ const corsOptions = {
   },
 };
 
-app.use(cors(corsOptions));
-
-// Ensure preflight requests are handled using the same CORS options
-app.options("*", cors(corsOptions));
+// Allow all origins when DEBUG_ALLOW_ALL is set (temporary debugging only)
+if (process.env.DEBUG_ALLOW_ALL === "true") {
+  console.warn(
+    "DEBUG_ALLOW_ALL=true — allowing all origins for debugging (not for production)"
+  );
+  app.use(cors());
+} else {
+  app.use(cors(corsOptions));
+  // Ensure preflight requests are handled using the same CORS options
+  app.options("*", cors(corsOptions));
+}
 
 console.log("Allowed CORS origins:", allowedOrigins);
 
 // Debug endpoint to check allowed origins at runtime
 app.get("/api/debug/origins", (req, res) => {
-  res.json({ allowedOrigins });
+  res.json({
+    allowedOrigins,
+    debugAllowAll: process.env.DEBUG_ALLOW_ALL === "true",
+  });
 });
 app.use(express.json());
 
