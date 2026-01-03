@@ -23,19 +23,29 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",").map((s) => s.trim())
   : defaultAllowed;
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // allow requests with no origin (like curl, Postman)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        callback(new Error("CORS policy: This origin is not allowed"), false);
-      }
-    },
-  })
-);
+const corsOptions = {
+  origin: (origin, callback) => {
+    // allow requests with no origin (like curl, Postman)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    }
+    // reject unknown origins
+    return callback(null, false);
+  },
+};
+
+app.use(cors(corsOptions));
+
+// Ensure preflight requests are handled using the same CORS options
+app.options("*", cors(corsOptions));
+
+console.log("Allowed CORS origins:", allowedOrigins);
+
+// Debug endpoint to check allowed origins at runtime
+app.get("/api/debug/origins", (req, res) => {
+  res.json({ allowedOrigins });
+});
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
