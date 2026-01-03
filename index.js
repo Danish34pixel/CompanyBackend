@@ -36,16 +36,11 @@ const corsOptions = {
 };
 
 // Allow all origins when DEBUG_ALLOW_ALL is set (temporary debugging only)
-if (process.env.DEBUG_ALLOW_ALL === "true") {
-  console.warn(
-    "DEBUG_ALLOW_ALL=true — allowing all origins for debugging (not for production)"
-  );
-  app.use(cors());
-} else {
-  app.use(cors(corsOptions));
-  // Ensure preflight requests are handled using the same CORS options
-  app.options("*", cors(corsOptions));
-}
+// For temporary debugging in deployment, always allow all origins.
+// WARNING: This makes the API accept requests from any origin. Remove this in production.
+app.use(cors());
+// Also accept preflight for all routes
+app.options("*", cors());
 
 console.log("Allowed CORS origins:", allowedOrigins);
 
