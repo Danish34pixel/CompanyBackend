@@ -27,11 +27,14 @@ export const signup = async (req, res) => {
     await user.save();
     res.status(201).json({ message: "User created", email });
   } catch (err) {
-    console.error("Signup error:", err);
+    console.error("Signup error:", err && err.message ? err.message : err);
     if (err && err.stack) console.error(err.stack);
-    res
-      .status(500)
-      .json({ message: "Server error", error: err.message || err });
+    // Return error message to client in debug mode so deployed logs show root cause.
+    // NOTE: Remove or sanitize this in production for security.
+    res.status(500).json({
+      message: "Server error",
+      error: err && err.message ? err.message : String(err),
+    });
   }
 };
 
