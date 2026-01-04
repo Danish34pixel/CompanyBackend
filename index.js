@@ -10,7 +10,6 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-
 /* =======================
    DATABASE CONNECTION
 ======================= */
@@ -18,18 +17,30 @@ connectDB();
 
 /* =======================
    CORS CONFIGURATION
+   - Reads allowed origins from `ALLOWED_ORIGINS` env (comma-separated)
+   - If `DEBUG_ALLOW_ALL` is set to "true" allow requests with any origin
 ======================= */
-const allowedOrigins = [
+const defaultOrigins = [
   "https://billing-chi-peach.vercel.app",
   "http://localhost:5173",
   "http://localhost:3000",
 ];
+
+const envOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",").map((s) => s.trim())
+  : [];
+
+const allowedOrigins = envOrigins.length ? envOrigins : defaultOrigins;
+const debugAllowAll =
+  String(process.env.DEBUG_ALLOW_ALL || "false").toLowerCase() === "true";
 
 app.use(
   cors({
     origin: function (origin, callback) {
       // Allow requests with no origin (Postman, curl)
       if (!origin) return callback(null, true);
+
+      if (debugAllowAll) return callback(null, true);
 
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
